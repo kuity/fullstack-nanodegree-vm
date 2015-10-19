@@ -14,13 +14,42 @@ def connect():
 def deleteMatches():
     """Remove all the match records from the database."""
 
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'DELETE from matches *;'
+
+    c.execute(query)
+    conn.commit()
+    conn.close()
+
 
 def deletePlayers():
     """Remove all the player records from the database."""
 
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'DELETE from players *;'
+
+    c.execute(query)
+    conn.commit()
+    conn.close()
+
 
 def countPlayers():
     """Returns the number of players currently registered."""
+
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'SELECT COUNT(id) from players;'
+    c.execute(query)
+    numPlayers = c.fetchone()[0]
+    conn.close()
+
+    # print(numPlayers[0])
+    return numPlayers
 
 
 def registerPlayer(name):
@@ -32,6 +61,13 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'INSERT into players(name) VALUES (%s);'    
+    c.execute(query, [name])
+    conn.commit()
+    conn.close()
 
 
 def playerStandings():
@@ -48,6 +84,19 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'SELECT id, name, wins, wins+losses from players \
+            ORDER by wins desc'
+    c.execute(query)
+    
+    standings = c.fetchall()
+    conn.close()
+
+    return standings
+
+
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -56,6 +105,19 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+
+    conn = connect()
+    c = conn.cursor()
+
+    query = 'INSERT into matches VALUES (%s, %s);'
+    c.execute(query, [winner, loser])
+    query = 'UPDATE players SET wins = wins+1 WHERE id=%s'
+    c.execute(query, [winner,])
+    query = 'UPDATE players SET losses = losses+1 WHERE id=%s'
+    c.execute(query, [loser,])
+    
+    conn.commit()
+    conn.close()
  
  
 def swissPairings():
@@ -74,4 +136,12 @@ def swissPairings():
         name2: the second player's name
     """
 
-
+    standings = playerStandings()
+    pairings = []
+    i = 0
+    while i < len(standings):
+        pairings.append((standings[i][0], standings[i][1],
+                         standings[i+1][0], standings[i+1][1]));
+        i += 2
+    
+    return pairings
