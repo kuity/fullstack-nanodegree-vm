@@ -9,18 +9,27 @@
 DROP DATABASE IF EXISTS tournament;
 CREATE DATABASE tournament;
 \c tournament;
+
 CREATE TABLE players (
     id serial NOT NULL,
     name varchar(50) NOT NULL,
     wins int DEFAULT 0,
     losses int DEFAULT 0,
+    draws int DEFAULT 0,
+    points int DEFAULT 0,
+    bye boolean DEFAULT FALSE,
+    registration varchar(30) DEFAULT 'current',
     PRIMARY KEY(id)
 );
+
 CREATE TABLE matches (
     winner int NOT NULL,
     loser int NOT NULL,
+    draw boolean DEFAULT FALSE,
+    bye boolean DEFAULT FALSE,
+    registration varchar(30) DEFAULT 'current',
     FOREIGN KEY(winner) REFERENCES players (id),
     FOREIGN KEY(loser) REFERENCES players (id),
-    CHECK (loser!=winner)
+    CHECK ((loser != winner AND loser > 0 AND winner > 0) OR loser = -1)
 );
 ALTER SEQUENCE players_id_seq RESTART WITH 1;
