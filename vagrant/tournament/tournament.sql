@@ -24,7 +24,7 @@ CREATE TABLE players (
 
 CREATE TABLE matches (
     winner int NOT NULL,
-    loser int NOT NULL,
+    loser int,
     draw boolean DEFAULT FALSE,
     bye boolean DEFAULT FALSE,
     registration varchar(30) DEFAULT 'current',

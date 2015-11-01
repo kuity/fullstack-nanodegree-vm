@@ -48,14 +48,20 @@ def deletePlayers(registration=None):
     conn.close()
 
 
-def countPlayers():
-    """Returns the number of players currently registered."""
+def countPlayers(registration=None):
+    """Returns the number of players currently registered.
+    If registration is specified, returns the number of players registered for
+    that particular tournament
+    """
 
     conn = connect()
     c = conn.cursor()
 
     query = 'SELECT COUNT(id) FROM players WHERE registration=%s;'
-    c.execute(query, ['current',])
+    if registration==None:
+        c.execute(query, ['current',])
+    else:
+        c.execute(query, [registration,])
     numPlayers = c.fetchone()[0]
     conn.close()
 
@@ -89,7 +95,7 @@ def playerStandings():
 
     Returns:
       A list of tuples, each of which contains 
-        (id, name, points, matches, OMW, bye):
+        (id, name, points, matches, bye, OMW):
         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
         points: the number of points the player has, based on the ranking method
@@ -123,7 +129,7 @@ def playerStandings():
     standings = []
     for group in groupByPoints:
         groupSorted = []
-        print("group is %s") % group
+        # print("group is %s") % group
         for player in group:
             query = 'SELECT sum(players.points) \
                         FROM players, matches \
@@ -139,14 +145,14 @@ def playerStandings():
                          points)
             groupSorted.append(modPlayer)
 
-        print("Before sorting, group is %s") % groupSorted
-        groupSorted.sort(key=lambda tup: tup[5], reverse=True)
-        print("After sorting, group is %s") % groupSorted
+        # print("Before sorting, group is %s") % groupSorted
+        groupSorted.sort(key=lambda tup: tup[5])
+        # print("After sorting, group is %s") % groupSorted
         standings.extend(groupSorted)
 
     conn.close()
 
-    print("standings are %s") % groupSorted
+    # print("standings are %s") % standings
     return standings
 
 
@@ -166,14 +172,14 @@ def reportMatch(winner, loser, draw=False, bye=False):
 
     if bye == True:
         assert winner == loser, "Only one player can receive a bye in a single match"
-        assert draw == false, "There can't be a bye and a draw in the same match"
+        assert draw == False, "There can't be a bye and a draw in the same match"
         query = 'SELECT bye FROM players where id=%s;'
         c.execute(query, [winner,])
-        assert c.fetchone() == false, "Each player can only receive one bye in one tournament"
-        query = 'INSERT into matches VALUES (%s, -1, FALSE, TRUE);'
+        assert c.fetchone()[0] == False, "Each player can only receive one bye in one tournament"
+        query = 'INSERT into matches (winner, bye) VALUES (%s, TRUE);'
         c.execute(query, [winner,])
         query = 'UPDATE players \
-                    SET wins=wins+1, points=points+2 \
+                    SET wins=wins+1, points=points+2, bye=TRUE \
                     WHERE id=%s;'
         c.execute(query, [winner,])
 
@@ -233,9 +239,9 @@ def swissPairings():
         for i in range(len(standings)):
             player = standings[i]
             if player[4] == False:
-                pairings.append(player[0], player[1], player[0], player[1])
-            standings.pop(i)
-            break
+                pairings.append((player[0], player[1], player[0], player[1]))
+                standings.pop(i)
+                break
     
     # At this point there must be an even number of players left
     # Simply pair them as per usual
@@ -245,11 +251,12 @@ def swissPairings():
                          standings[i+1][0], standings[i+1][1]));
         i += 2
     
+    # print "pairings are %s" % pairings
     return pairings
-
+ 
 def completeTournament(tournyName):
     """Updates database accordingly when a tournament has been completed, 
-    setting the 'registration' field of each player to 
+    setting the 'registration' field of each player to tournyName
     """
 
     conn = connect()
@@ -260,3 +267,5 @@ def completeTournament(tournyName):
     query = 'UPDATE players SET registration=%s WHERE registration=%s;'
     c.execute(query, [tournyName, 'current'])
     
+    conn.commit()
+    conn.close()
