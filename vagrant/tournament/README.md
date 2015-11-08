@@ -1,12 +1,13 @@
 ## About
 This is an implementation of a psql database with python functions that supports tournaments with a swiss-pairing style.
 
+
 ## How to activate the database
 1. From the command line in the home directory, enter "vagrant up" and "vagrant ssh".
 2. Navigate to the tournament directory.
 3. Enter "psql" to start Postgre SQL.
 4. Enter "\i tournament.sql" to import the database schema.
-5. Now, the database is up and running. Enter "\d" to see all tables and views and "\d <table name>" to see the details regarding a specific table.
+5. Enter "\d" to see all tables and views and "\d [table name]" to see details regarding a specific table.
 
 ## How to run test cases
 1. From the tournament directory, enter "python tournament_test.py" to run tests.
