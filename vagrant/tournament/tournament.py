@@ -114,12 +114,8 @@ def playerStandings():
     conn = connect()
     c = conn.cursor()
 
-    query = 'SELECT id, name, points, wins+losses+draws, bye \
-                FROM players \
-                WHERE registration=%s \
-                ORDER by points desc;'
-                
-    c.execute(query, ['current',])
+    query = 'SELECT * from standings'
+    c.execute(query)
     
     # Players are grouped by the total points they have earned so far
     standings = c.fetchall()

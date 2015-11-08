@@ -32,4 +32,11 @@ CREATE TABLE matches (
     FOREIGN KEY(loser) REFERENCES players (id),
     CHECK ((loser != winner AND loser > 0 AND winner > 0) OR loser = -1)
 );
+
+CREATE VIEW standings AS
+SELECT id, name, points, wins+losses+draws, bye
+FROM players
+WHERE registration = 'current'
+ORDER by points;
+
 ALTER SEQUENCE players_id_seq RESTART WITH 1;
